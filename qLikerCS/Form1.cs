@@ -7,19 +7,55 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+using System.Runtime.InteropServices;
+
 namespace qLikerCS
 {
     public partial class Form1 : Form
     {
+        [DllImport( "kernel32.dll" )]
+        extern static bool SetEnvironmentVariable( string name, string val );
+
         string _exeFileName = null;
 
         public Form1()
         {
             InitializeComponent();
+
+            setupProcessEnvironment();
+        }
+
+        private void setupProcessEnvironment()
+        {
+            string path = System.Environment.GetEnvironmentVariable( @"PATH" );
+            string envPath = getDataFromConfigFile();
+            if ( envPath != string.Empty )
+            {
+                SetEnvironmentVariable( @"PATH", envPath + @";" + path );
+            }
+        }
+
+        private string getDataFromConfigFile()
+        {
+            string result = string.Empty;
+            try
+            {
+                string configFile = @"config.ini";
+                System.IO.StreamReader reader = new System.IO.StreamReader( configFile );
+                result = reader.ReadLine();
+            }
+            catch ( Exception e )
+            {
+                //MessageBox.Show( e.Message, e.GetType().ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error );
+            }
+            return result;
         }
 
         private void loadTestFunction()
         {
+            listView1.Items.Clear();
+            richTextBox1.Text = string.Empty;
+
             process1.StartInfo.FileName = _exeFileName;
             process1.StartInfo.RedirectStandardOutput = true;
             process1.StartInfo.CreateNoWindow = true;
@@ -42,6 +78,7 @@ namespace qLikerCS
 
         private void loadToolStripMenuItem_Click( object sender, EventArgs e )
         {
+            openFileDialog1.Filter = @"QTestLib実行ファイル(*.exe)|*.exe";
             DialogResult ret = openFileDialog1.ShowDialog();
             if ( ret == DialogResult.OK )
             {
@@ -51,6 +88,11 @@ namespace qLikerCS
 
                 loadTestFunction();
             }
+        }
+
+        private void exitToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            this.Close();
         }
 
         private void runBotton_Click( object sender, EventArgs e )
