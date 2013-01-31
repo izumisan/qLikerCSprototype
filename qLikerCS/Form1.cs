@@ -53,7 +53,7 @@ namespace qLikerCS
 
         private void loadTestFunction()
         {
-            listView1.Items.Clear();
+            treeView1.Nodes.Clear();
             richTextBox1.Text = string.Empty;
 
             process1.StartInfo.FileName = _exeFileName;
@@ -69,11 +69,15 @@ namespace qLikerCS
             string[] separator = {System.Environment.NewLine};
             string[] funcList = stdoutput.Split( separator, StringSplitOptions.RemoveEmptyEntries );
 
+            TreeNode topNode = new TreeNode( System.IO.Path.GetFileNameWithoutExtension( _exeFileName ) );
             foreach ( string funcName in funcList )
             {
                 string item = funcName.Replace( @"()", @"" );
-                listView1.Items.Add( item );
+                TreeNode node = new TreeNode( item );
+                topNode.Nodes.Add( node );
             }
+
+            treeView1.Nodes.Add( topNode );
         }
 
         private void loadToolStripMenuItem_Click( object sender, EventArgs e )
@@ -97,7 +101,21 @@ namespace qLikerCS
 
         private void runBotton_Click( object sender, EventArgs e )
         {
-            process1.StartInfo.Arguments = string.Empty;
+            if ( treeView1.SelectedNode != null )
+            {
+                if ( treeView1.SelectedNode.Text == System.IO.Path.GetFileNameWithoutExtension( _exeFileName ) )
+                {
+                    process1.StartInfo.Arguments = string.Empty;
+                }
+                else
+                {
+                    process1.StartInfo.Arguments = treeView1.SelectedNode.Text;
+                }
+            }
+            else
+            {
+                process1.StartInfo.Arguments = string.Empty;
+            }
             process1.Start();
             process1.WaitForExit();
 
